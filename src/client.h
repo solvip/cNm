@@ -10,9 +10,6 @@
     ((type *)((char *)(1 ? (ptr) : &((type *)0)->member) -                     \
               offsetof(type, member)))
 
-/* the signature of read(2) */
-typedef ssize_t (*reader)(int filedes, void *buf, size_t nbyte);
-
 struct client_conn {
     /* libev watches */
     struct ev_io r_io;
@@ -21,12 +18,6 @@ struct client_conn {
 
     /* Our event loop */
     struct ev_loop *loop;
-
-    /* The read function called to read from fd.
-     * We use a function pointer here to be able to mock
-     * it out during tests
-     */
-    reader read;
 
     /* the underlying fd */
     int fd;

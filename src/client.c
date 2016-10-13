@@ -25,7 +25,6 @@ struct client_conn *client_conn_new(struct ev_loop *loop, int conn_fd)
         return NULL;
     }
     c->loop = loop;
-    c->read = read;
     c->fd = conn_fd;
 
     return c;
@@ -99,7 +98,10 @@ static void read_io_callback(struct ev_loop *loop, struct ev_io *watcher,
         bytes_read = read(c->fd, buf, sizeof(buf));
     } while (bytes_read > 0);
 
-    if (bytes_read < 0 && errno != EAGAIN) {
+    if (bytes_read < 0 && (errno == EAGAIN || errno == EINTR)) {
+        /* Try later */
+        return;
+    } else if (bytes_read < 0) {
         perror("unable to read from socket");
         client_conn_close(c);
         client_conn_free(c);
@@ -123,10 +125,10 @@ static void write_io_callback(struct ev_loop *loop, struct ev_io *watcher,
     }
 
     ssize_t bytes_written = write(c->fd, "A", 1);
-    if (bytes_written < 0 && errno == EAGAIN) {
+    if (bytes_written < 0 && (errno == EAGAIN || errno == EINTR)) {
         /* Try later */
         return;
-    } else if (bytes_written < 0) {
+    } else if (bytes_written < 0 && (errno != EAGAIN && errno != EINTR)) {
         perror("unable to write to socket");
         client_conn_close(c);
         client_conn_free(c);
