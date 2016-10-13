@@ -1,9 +1,9 @@
-TARGET = c1m
+TARGET = cNm
 LIBS = -lev
 CC = cc
-CFLAGS = -std=c11 -g -Wall -Wextra -Wpedantic -Wstrict-overflow -fno-strict-aliasing -march=native
+CFLAGS = -std=c11 -g -Wall -Wpedantic -Wextra -Wstrict-overflow -fno-strict-aliasing -march=native
 
-.PHONY: all clean test
+.PHONY: all clean
 
 all: $(TARGET)
 
@@ -17,11 +17,11 @@ $(TARGET): $(OBJECTS) test
 	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
 
 # Compile the test sources.
-# We exluce c1m.o, as that contains the main function.  We want criterion to define main.
+# We exluce main.o, as that contains the main function.  We want criterion to define main.
 TEST_SOURCES = $(wildcard tests/*.c)
-TEST_OBJECTS = $(filter-out src/c1m.o, $(OBJECTS))
+TEST_OBJECTS = $(filter-out src/cNm.o, $(OBJECTS))
 test: $(OBJECTS) $(TEST_SOURCES)
-	$(CC) $(CFLAGS) -Wall $(LIBS) -lcriterion $(TEST_OBJECTS) $(TEST_SOURCES) -o $@
+	$(CC) $(CFLAGS) -I src/ -Wall $(LIBS) -lcriterion $(TEST_OBJECTS) $(TEST_SOURCES) -o $@
 	./test
 
 clean:
