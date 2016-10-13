@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-clang-format -style="{BasedOnStyle: llvm, IndentWidth: 4, AllowShortFunctionsOnASingleLine: None, KeepEmptyLinesAtTheStartOfBlocks: false}" -i src/*.{c,h}
+clang-format -style=file -i src/*.{c,h} tests/*.{c,h}
 
