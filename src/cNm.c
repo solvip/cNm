@@ -29,13 +29,15 @@ static bool set_nonblock(const int fd);
 
 static void listener_cb(struct ev_loop *loop, struct ev_io *w, int revents)
 {
-    if(revents & EV_ERROR) {
-        fprintf(stderr, "error in listener_callback; nothing to do but break and die\n");
+    if (revents & EV_ERROR) {
+        fprintf(
+            stderr,
+            "error in listener_callback; nothing to do but break and die\n");
         ev_break(loop, EVBREAK_ALL);
 
         return;
     }
-    
+
     struct sockaddr client_addr;
     socklen_t client_addr_size = sizeof(client_addr);
     int client_fd = accept(w->fd, &client_addr, &client_addr_size);
