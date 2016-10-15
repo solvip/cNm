@@ -14,11 +14,7 @@
 
 #include <ev.h>
 
-#include "client.h"
-
-#define container_of(ptr, type, member)                                        \
-    ((type *)((char *)(1 ? (ptr) : &((type *)0)->member) -                     \
-              offsetof(type, member)))
+#include "client_conn.h"
 
 const int listen_backlog = 128;
 
@@ -55,8 +51,7 @@ static void listener_cb(struct ev_loop *loop, struct ev_io *w, int revents)
     struct client_conn *c = client_conn_new(loop, client_fd);
     if (c == NULL) {
         perror("Closing newly accepted connection; unable to allocate memory");
-        client_conn_close(c);
-        client_conn_free(c);
+        client_conn_close(&c);
         return;
     }
 

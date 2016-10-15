@@ -8,7 +8,7 @@
 
 #include <ev.h>
 
-#include "client.h"
+#include "client_conn.h"
 
 static void read_io_callback(struct ev_loop *loop, struct ev_io *watcher,
                              int revents);
@@ -43,39 +43,21 @@ void client_conn_start_watchers(struct client_conn *c)
     ev_timer_start(c->loop, &c->timer);
 }
 
-/* client_conn_free - Free the heap-allocated client_conn
+/* client_conn_close - Close the connection associated with *c.
+ * Free all resources associated with *c.
  */
-void client_conn_free(struct client_conn *c)
+void client_conn_close(struct client_conn **c)
 {
-    ev_io_stop(c->loop, &c->r_io);
-    ev_io_stop(c->loop, &c->w_io);
-    ev_timer_stop(c->loop, &c->timer);
+    shutdown((*c)->fd, SHUT_RDWR);
+    close((*c)->fd);
+    
+    ev_io_stop((*c)->loop, &(*c)->r_io);
+    ev_io_stop((*c)->loop, &(*c)->w_io);
+    ev_timer_stop((*c)->loop, &(*c)->timer);
 
-    free(c);
-}
+    free(*c);
 
-/* client_conn_shutdown - Shut down both sides of the connection.
- * The file descriptor is not closed.
- */
-bool client_conn_shutdown(struct client_conn *c)
-{
-    if (shutdown(c->fd, SHUT_RDWR) < 0) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-/* client_conn_close - Close the connection associated with c.
- * It is not shut down beforehand.
- */
-bool client_conn_close(struct client_conn *c)
-{
-    if (close(c->fd) < 0) {
-        return false;
-    } else {
-        return true;
-    }
+    *c = NULL;
 }
 
 static void read_io_callback(struct ev_loop *loop, struct ev_io *watcher,
@@ -103,8 +85,7 @@ static void read_io_callback(struct ev_loop *loop, struct ev_io *watcher,
         return;
     } else if (bytes_read < 0) {
         perror("unable to read from socket");
-        client_conn_close(c);
-        client_conn_free(c);
+        client_conn_close(&c);
 
         return;
     }
@@ -130,8 +111,7 @@ static void write_io_callback(struct ev_loop *loop, struct ev_io *watcher,
         return;
     } else if (bytes_written < 0 && (errno != EAGAIN && errno != EINTR)) {
         perror("unable to write to socket");
-        client_conn_close(c);
-        client_conn_free(c);
+        client_conn_close(&c);
 
         return;
     }
