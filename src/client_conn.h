@@ -25,7 +25,4 @@ struct client_conn {
 
 struct client_conn *client_conn_new(struct ev_loop *loop, int conn_fd);
 void client_conn_start_watchers(struct client_conn *c);
-void client_conn_free(struct client_conn *c);
-
-bool client_conn_close(struct client_conn *c);
-bool client_conn_shutdown(struct client_conn *c);
+void client_conn_close(struct client_conn **c);
