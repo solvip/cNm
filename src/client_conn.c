@@ -50,7 +50,7 @@ void client_conn_close(struct client_conn **c)
 {
     shutdown((*c)->fd, SHUT_RDWR);
     close((*c)->fd);
-    
+
     ev_io_stop((*c)->loop, &(*c)->r_io);
     ev_io_stop((*c)->loop, &(*c)->w_io);
     ev_timer_stop((*c)->loop, &(*c)->timer);
