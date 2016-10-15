@@ -1,3 +1,4 @@
+#include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -6,6 +7,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "util.h"
 
 void log_printf(const char *restrict format, ...)
 {
@@ -14,6 +18,52 @@ void log_printf(const char *restrict format, ...)
     vfprintf(stderr, format, arglist);
     fprintf(stderr, "\n");
     va_end(arglist);
+}
+
+/* Parse a host:port string into sockaddr and return true on success.
+ * The structure is zeroed upon call.
+ * If any system errors were encountered, errno might be non-zero.
+ */
+bool parse_hostport(const char *hostport, struct sockaddr_in *dst)
+{
+    errno = 0;
+
+    memset(dst, 0, sizeof(struct sockaddr));
+
+    char *s = strdup(hostport);
+    if (s == NULL) {
+        return false;
+    }
+
+    char *last = NULL;
+    char *host = strtok_r(s, ":", &last);
+    if (host == NULL) {
+        goto err;
+    }
+
+    int rc = inet_pton(AF_INET, host, &dst->sin_addr);
+    if (rc != 1) {
+        goto err;
+    }
+
+    char *portstring = strtok_r(NULL, ":", &last);
+    if (portstring == NULL) {
+        goto err;
+    }
+
+    int32_t port;
+    if (!parse_int32_t(&port, portstring)) {
+        goto err;
+    }
+
+    dst->sin_port = htons((uint16_t)port);
+
+    free(s);
+    return true;
+
+err:
+    free(s);
+    return false;
 }
 
 /* parse_int - Parse an integer from string and store the result in *result.
