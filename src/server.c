@@ -108,6 +108,11 @@ static int socket_bind_listen_or_exit(int32_t port)
         log_fatalf("unable to set SO_REUSEADDR: %s", strerror(errno));
     }
 
+    rc = setsockopt(listenfd, SOL_SOCKET, SO_REUSEPORT, &(int){1}, sizeof(int));
+    if (rc < 0) {
+        log_fatalf("unable to set SO_REUSEPORT: %s", strerror(errno));
+    }
+
     struct sockaddr_in server_addr = {
         .sin_family = AF_INET,
         .sin_port = htons(port),
