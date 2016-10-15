@@ -1,5 +1,6 @@
 *.dSYM
 *.o
 test
-cNmd
+server
+client
 
